@@ -36,7 +36,7 @@ impl Packet {
     pub fn to_bytes(&self) -> Vec<u8> {
         let body: Vec<u8> = self.tlvs.iter().flat_map(|t| t.to_bytes()).collect();
         let mut buf = Vec::with_capacity(4 + body.len());
-        buf.push(42); // Magic = 42 must match RFC8966 §4.2 
+        buf.push(42); // Magic = 42 must match RFC8966 §4.2
         buf.push(2); // Version = 2
         let len = body.len() as u16;
         buf.push((len >> 8) as u8);
