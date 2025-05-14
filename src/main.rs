@@ -36,6 +36,7 @@ fn main() {
     combined.extend_from_slice(&header);
     combined.extend_from_slice(&tlv);
 
-    // Send the combined babel packet to the UDP socket, to myself
+    // Send the combined babel packet to the UDP socket, to babel unicast
+    // (prolly doesn't make sense given we're bound to loopback)
     socket.send_to(&combined, "224.0.0.111:6696").expect("Couldn't send packet: ");
 }
