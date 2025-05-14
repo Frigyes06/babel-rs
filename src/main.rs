@@ -1,6 +1,5 @@
 // src/main.rs
 // Simple Babel node using TLV and Packet modules
-// Simplified BSD License applies
 
 // Declare modules from this crate
 mod tlv;

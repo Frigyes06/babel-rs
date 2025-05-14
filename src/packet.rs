@@ -1,6 +1,5 @@
 // src/packet.rs
 // Babel packet construction and I/O helpers with RFC-compliant builders, multicast support, and integration tests
-// Simplified BSD License applies
 
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, ToSocketAddrs, UdpSocket};
