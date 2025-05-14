@@ -1,5 +1,5 @@
-use std::{boxed, net::UdpSocket, vec};
-use rand::{fill, rand_core::impls::fill_bytes_via_next, RngCore};
+use std::net::UdpSocket;
+use rand;
 
 fn request_ack_tlv() -> [u8; 8] {
     let first: [u8; 4] = [2, 6, 0, 0];
