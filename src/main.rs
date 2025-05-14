@@ -2,15 +2,15 @@
 // Simple Babel node using TLV and Packet modules
 
 // Declare modules from this crate
-mod tlv;
 mod packet;
+mod tlv;
 
 use std::io;
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
 use std::thread;
 use std::time::Duration;
 
-use packet::{Packet, BABEL_PORT, MULTICAST_V4_ADDR};
+use packet::{BABEL_PORT, MULTICAST_V4_ADDR, Packet};
 
 fn main() -> io::Result<()> {
     // Bind a UDP socket to all interfaces on the Babel port
@@ -39,14 +39,23 @@ fn main() -> io::Result<()> {
 
     // Periodically send Hello messages on the same socket
     let mut seqno: u16 = 1;
-    let flags: u16 = 0;          // no-special flags
+    let flags: u16 = 0; // no-special flags
     let interval_ms: u16 = 1000; // 1 second
 
     loop {
         // Build and serialize a Hello TLV
         let mut packet = Packet::new();
-        packet.add_tlv(tlv::Tlv::Hello { flags: flags, seqno: seqno, interval: interval_ms, sub_tlvs: Vec::new() });
-        packet.add_tlv(tlv::Tlv::AckRequest { opaque: 255, interval: 200, sub_tlvs: Vec::new() });
+        packet.add_tlv(tlv::Tlv::Hello {
+            flags: flags,
+            seqno: seqno,
+            interval: interval_ms,
+            sub_tlvs: Vec::new(),
+        });
+        packet.add_tlv(tlv::Tlv::AckRequest {
+            opaque: 255,
+            interval: 200,
+            sub_tlvs: Vec::new(),
+        });
         packet.add_tlv(tlv::Tlv::PadN { n: 255 });
         //let hello_pkt = Packet::build_hello(flags, seqno, interval_ms);
         let payload = packet.to_bytes();
