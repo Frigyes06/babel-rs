@@ -17,6 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: rui314/setup-mold@v1
+    - name: Install cranelift
+      run: rustup component add rustc-codegen-cranelift-preview --toolchain nightly
     - name: Build
       run: cargo +nightly build --verbose
     - name: Run tests
