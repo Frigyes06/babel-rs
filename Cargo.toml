@@ -1,3 +1,4 @@
+cargo-features = ["codegen-backend"]
 [package]
 name = "babel_rs"
 version = "0.1.0"
@@ -6,3 +7,37 @@ edition = "2024"
 [dependencies]
 byteorder = "1.5.0"
 rand = "0.9.1"
+
+[profile.release]
+lto = true
+opt-level = "z"
+strip = true
+codegen-units = 1
+panic = "abort"
+
+[profile.performance]
+inherits = "release"
+opt-level = 3
+debug = false
+strip = "none"
+lto = true
+codegen-units = 1
+incremental = false
+panic = "abort"
+
+[profile.mini]
+inherits = "release"
+opt-level = "z"
+debug = false
+strip = true
+lto = true
+codegen-units = 1
+incremental = false
+panic = "abort"
+
+[profile.dev]
+debug = 0
+codegen-backend = "cranelift"
+
+[build]
+rustflags = ["-C", "target-cpu=native"]
