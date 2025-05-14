@@ -3,9 +3,10 @@
 version = 4
 
 [[package]]
-name = "babel-rs"
+name = "babel_rs"
 version = "0.1.0"
 dependencies = [
+ "byteorder",
  "rand",
 ]
 
@@ -14,6 +15,12 @@ name = "bitflags"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
+
+[[package]]
+name = "byteorder"
+version = "1.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "cfg-if"

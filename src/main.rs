@@ -1,42 +1,65 @@
-use std::net::UdpSocket;
-use rand;
+// src/main.rs
+// Simple Babel node using TLV and Packet modules
+// Simplified BSD License applies
 
-fn request_ack_tlv() -> [u8; 8] {
-    let first: [u8; 4] = [2, 6, 0, 0];
-    let mut opaque: [u8; 2] = [0u8;2];
-    rand::fill(&mut opaque);
-    let last: [u8; 2] = [0, 200];
+// Declare modules from this crate
+mod tlv;
+mod packet;
 
-    // Concatenate first, opaque, and last into tlv
-    let mut tlv = [0u8; 8];
-    tlv[0..4].copy_from_slice(&first);
-    tlv[4..6].copy_from_slice(&opaque);
-    tlv[6..8].copy_from_slice(&last);
+use std::io;
+use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
+use std::thread;
+use std::time::Duration;
 
-    tlv
-}
+use packet::{Packet, BABEL_PORT, MULTICAST_V4_ADDR};
 
-fn main() {
-    // Create UDP socket on Babel port
-    let socket = UdpSocket::bind("127.0.0.1:6696").expect("Couldn't bind to socket");
+fn main() -> io::Result<()> {
+    // Bind a UDP socket to all interfaces on the Babel port
+    let socket = UdpSocket::bind(("0.0.0.0", BABEL_PORT))?;
+    // Join the Babel IPv4 multicast group
+    socket.join_multicast_v4(&MULTICAST_V4_ADDR, &Ipv4Addr::UNSPECIFIED)?;
 
-    // generate a request ack tlv
-    let tlv = request_ack_tlv();
+    // Clone socket for the receiver thread
+    let recv_socket = socket.try_clone()?;
 
-    // Take length of tlv (or other resultant body array) and split it into the 2 u8 required in header
-    let body_length: u16 = tlv.len().try_into().unwrap();
-    let high_bl : u8 = (body_length >> 8) as u8;
-    let low_bl : u8 = (body_length & 0xff) as u8;
-    
-    // Create the header for the message
-    let header=[42, 2, high_bl, low_bl];
+    // Spawn receiver thread
+    thread::spawn(move || {
+        let mut buf = [0u8; 1500];
+        loop {
+            match Packet::recv(&recv_socket, &mut buf) {
+                Ok((tlvs, src)) => {
+                    println!("[Received {} TLVs from {}]", tlvs.len(), src);
+                    for tlv in tlvs {
+                        println!("  TLV: {:?}", tlv);
+                    }
+                }
+                Err(e) => eprintln!("Receive error: {}", e),
+            }
+        }
+    });
 
-    // Concatenate header and tlv
-    let mut combined = Vec::with_capacity(header.len() + tlv.len());
-    combined.extend_from_slice(&header);
-    combined.extend_from_slice(&tlv);
+    // Periodically send Hello messages on the same socket
+    let mut seqno: u16 = 1;
+    let flags: u16 = 0;          // no-special flags
+    let interval_ms: u16 = 1000; // 1 second
 
-    // Send the combined babel packet to the UDP socket, to babel unicast
-    // (prolly doesn't make sense given we're bound to loopback)
-    socket.send_to(&combined, "224.0.0.111:6696").expect("Couldn't send packet: ");
+    loop {
+        // Build and serialize a Hello TLV
+        let mut packet = Packet::new();
+        packet.add_tlv(tlv::Tlv::Hello { flags: flags, seqno: seqno, interval: interval_ms, sub_tlvs: Vec::new() });
+        packet.add_tlv(tlv::Tlv::AckRequest { opaque: 255, interval: 200, sub_tlvs: Vec::new() });
+        packet.add_tlv(tlv::Tlv::PadN { n: 255 });
+        //let hello_pkt = Packet::build_hello(flags, seqno, interval_ms);
+        let payload = packet.to_bytes();
+        let dest: SocketAddr = (MULTICAST_V4_ADDR, BABEL_PORT).into();
+
+        // Send via the bound socket on 0.0.0.0
+        match socket.send_to(&payload, dest) {
+            Ok(n) => println!("Sent Hello #{} ({} bytes)", seqno, n),
+            Err(e) => eprintln!("Send error: {}", e),
+        }
+
+        seqno = seqno.wrapping_add(1);
+        thread::sleep(Duration::from_millis(interval_ms as u64));
+    }
 }

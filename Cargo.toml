@@ -1,7 +1,8 @@
 [package]
-name = "babel-rs"
+name = "babel_rs"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+byteorder = "1.5.0"
 rand = "0.9.1"
