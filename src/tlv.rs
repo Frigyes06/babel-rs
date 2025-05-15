@@ -614,5 +614,16 @@ mod tests {
         };
         assert_eq!(ack.to_bytes(), vec![3, 2, 1, 22])
     }
+
+    #[test]
+    fn test_hello() {
+        let hello = Tlv::Hello { 
+            flags: 0, 
+            seqno: 278, 
+            interval: 400, 
+            sub_tlvs: Vec::new() 
+        };
+        assert_eq!(hello.to_bytes(), vec![4, 6, 0, 0, 1, 22, 1, 144])
+    }
     // TODO! Implement tests for all Tlvs
 }
