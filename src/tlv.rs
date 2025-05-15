@@ -345,7 +345,7 @@ impl Tlv {
             }
             Tlv::Ack { opaque, sub_tlvs } => {
                 buf.push(3);
-                let body_len = 4 + sub_tlvs.iter().map(|st| st.len()).sum::<usize>();
+                let body_len = 2 + sub_tlvs.iter().map(|st| st.len()).sum::<usize>();
                 buf.push(body_len as u8);
                 buf.write_u16::<BigEndian>(*opaque).unwrap();
                 for st in sub_tlvs {
@@ -606,5 +606,13 @@ mod tests {
         assert_eq!(ackreq.to_bytes(), vec![2, 6, 0, 0, 1, 22, 1, 144])
     }
 
+    #[test]
+    fn test_ack() {
+        let ack = Tlv::Ack {
+            opaque: 278,
+            sub_tlvs: Vec::new(),
+        };
+        assert_eq!(ack.to_bytes(), vec![3, 2, 1, 22])
+    }
     // TODO! Implement tests for all Tlvs
 }
