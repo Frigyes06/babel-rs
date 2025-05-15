@@ -1,4 +1,3 @@
-cargo-features = ["codegen-backend"]
 [package]
 name = "babel_rs"
 version = "0.1.0"
@@ -37,7 +36,6 @@ panic = "abort"
 
 [profile.dev]
 debug = 0
-codegen-backend = "cranelift"
 
 [build]
 rustflags = ["-C", "target-cpu=native"]
